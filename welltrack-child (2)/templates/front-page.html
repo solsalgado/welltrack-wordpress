@@ -1,0 +1,950 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- Login -->
+<section id="login-section" class="py-24 bg-gradient-to-b from-cyan-50 via-white to-cyan-50">
+  <h2 class="text-4xl font-extrabold text-center mb-12 text-cyan-700 tracking-wide">Iniciá sesión</h2>
+  <div class="max-w-md mx-auto bg-white p-10 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.05)]">
+    <form id="login-form" class="space-y-6">
+      <input 
+        id="email" 
+        type="email" 
+        placeholder="Email" 
+        required 
+        class="w-full p-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-200 placeholder-gray-400 shadow-sm transition"
+      >
+      <input 
+        id="password" 
+        type="password" 
+        placeholder="Contraseña" 
+        required 
+        class="w-full p-4 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-200 placeholder-gray-400 shadow-sm transition"
+      >
+      <button 
+        type="submit" 
+        class="w-full py-3 bg-cyan-400 text-white font-semibold rounded-2xl hover:bg-cyan-500 shadow-md transition-all transform hover:-translate-y-0.5"
+      >
+        Entrar
+      </button>
+    </form>
+    <p id="login-message" class="text-center text-sm text-gray-500 mt-4"></p>
+    <p class="text-center text-sm text-gray-400 mt-2">
+      ¿No tenés cuenta? <a href="#" class="text-cyan-500 hover:underline">Registrate</a>
+    </p>
+  </div>
+</section>
+
+<!-- Panel del usuario -->
+<section id="panel-usuario" class="py-24 bg-cyan-50 hidden text-center">
+  <h2 class="text-4xl font-extrabold mb-4 text-cyan-700 tracking-wide">Hola, <span id="usuario-nombre"></span> 👋</h2>
+  <p class="text-gray-700 mb-8 text-lg">Bienvenido de nuevo a tu panel de bienestar.</p>
+  <button id="logout" class="bg-red-400 text-white px-8 py-3 rounded-2xl font-semibold hover:bg-red-500 shadow-md transition-all transform hover:-translate-y-0.5">
+    Cerrar sesión
+  </button>
+</section>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  const usuario = JSON.parse(localStorage.getItem("usuarioActual") || "{}");
+
+  const loginSection = document.getElementById("login-section");
+  const panel = document.getElementById("panel-usuario");
+  const usuarioNombre = document.getElementById("usuario-nombre");
+  const logoutButton = document.getElementById("logout");
+
+  if (token && usuario && usuario.nombreUsuario) {
+    loginSection.style.display = "none";
+    panel.classList.remove("hidden");
+    usuarioNombre.textContent = usuario.nombreUsuario;
+  }
+
+  logoutButton?.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuarioActual");
+    location.reload();
+  });
+
+  const form = document.getElementById("login-form");
+  const message = document.getElementById("login-message");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        message.textContent = data.mensaje || "Error al iniciar sesión";
+        message.style.color = "red";
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("usuarioActual", JSON.stringify(data.usuario));
+
+      message.textContent = "Inicio de sesión exitoso ✅";
+      message.style.color = "green";
+
+      setTimeout(() => location.reload(), 1000);
+
+    } catch (error) {
+      console.error(error);
+      message.textContent = "Error de conexión con el servidor.";
+      message.style.color = "red";
+    }
+  });
+});
+</script>
+
+
+<!-- 🌱 LANDING: se muestra si NO hay sesión -->
+<section id="landing" class="text-center py-16 bg-gradient-to-b from-cyan-100 to-cyan-50">
+  <h1 class="text-4xl font-bold mb-6 text-cyan-900">Bienvenido a Welltrack 🌿</h1>
+  <p class="text-cyan-700 mb-8 max-w-xl mx-auto">
+    Tu espacio para registrar tus días, organizarte y mejorar tu bienestar.
+  </p>
+  <button id="ir-a-login" class="bg-cyan-500 text-white px-6 py-3 rounded-xl hover:bg-cyan-600 transition">
+    Iniciar sesión
+  </button>
+</section>
+
+<!-- FORMULARIO LOGIN -->
+<section id="login-section" class="hidden py-16 bg-cyan-50">
+  <h2 class="text-3xl font-semibold mb-6 text-center text-cyan-900">Iniciá sesión</h2>
+  <form id="login-form" class="max-w-md mx-auto bg-white shadow-lg rounded-2xl p-8 space-y-4">
+    <input type="email" id="login-email" placeholder="Email" class="w-full border border-cyan-200 rounded-lg p-3 focus:ring-2 focus:ring-cyan-400">
+    <input type="password" id="login-password" placeholder="Contraseña" class="w-full border border-cyan-200 rounded-lg p-3 focus:ring-2 focus:ring-cyan-400">
+    <button type="submit" class="bg-cyan-500 text-white px-4 py-2 rounded-xl w-full hover:bg-cyan-600 transition">Entrar</button>
+    <p id="login-error" class="text-red-500 text-center mt-2 hidden"></p>
+  </form>
+</section>
+
+<!--  PANEL DEL USUARIO -->
+<section id="user-panel" class="hidden py-16 bg-cyan-50">
+  <div class="max-w-6xl mx-auto text-center">
+    
+
+    <div id="contenido-app">
+      <div class="max-w-6xl mx-auto mt-10 px-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Registro diario -->
+          <section id="registro-diario" class="bg-white shadow-lg rounded-2xl p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-cyan-900">Registrar mi día ✨</h2>
+            <button id="abrir-registro" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-xl w-full mb-4 transition">
+              Comenzar registro
+            </button>
+
+            <form id="form-registro" class="hidden space-y-4 text-left">
+              <div>
+                <label class="block mb-2 font-medium text-cyan-800">¿Cómo te sentís hoy?</label>
+                <div id="animo-emojis" class="flex justify-between text-2xl">
+                  <button type="button" class="emoji-btn" data-animo="😞">😞</button>
+                  <button type="button" class="emoji-btn" data-animo="😐">😐</button>
+                  <button type="button" class="emoji-btn" data-animo="😊">😊</button>
+                  <button type="button" class="emoji-btn" data-animo="😁">😁</button>
+                  <button type="button" class="emoji-btn" data-animo="🤩">🤩</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="block mb-1 font-medium text-cyan-800">Nivel de estrés 🧠</label>
+                <input type="range" id="estres" min="0" max="10" value="5" class="w-full accent-cyan-400">
+              </div>
+
+              <div>
+                <label class="block mb-1 font-medium text-cyan-800">Nivel de energía ⚡</label>
+                <input type="range" id="energia" min="0" max="10" value="5" class="w-full accent-cyan-300">
+              </div>
+
+              <div>
+                <label class="block mb-2 font-medium text-cyan-800">Actividades de hoy 🏃</label>
+                <div class="flex flex-wrap gap-2">
+                  <label class="flex items-center gap-1">
+                    <input type="checkbox" value="Gimnasio" class="accent-cyan-500"> 💪 Gimnasio
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <input type="checkbox" value="Estudio" class="accent-cyan-500"> 📚 Estudio
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <input type="checkbox" value="Trabajo" class="accent-cyan-500"> 💼 Trabajo
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <input type="checkbox" value="Caminata" class="accent-cyan-500"> 🚶 Caminata
+                  </label>
+                  <label class="flex items-center gap-1">
+                    <input type="checkbox" value="Deporte" class="accent-cyan-500"> 🏀 Deporte
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block mb-1 font-medium text-cyan-800">Notas o reflexiones 📝</label>
+                <textarea id="notas" rows="3" class="w-full border border-cyan-200 rounded-lg p-2 focus:ring-2 focus:ring-cyan-400"></textarea>
+              </div>
+
+              <div class="text-center">
+                <button id="enviar-registro" type="button" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-xl w-full transition">
+                  Guardar registro
+                </button>
+              </div>
+            </form>
+
+            <div id="resumen-dia" class="hidden mt-6 bg-cyan-50 p-6 rounded-2xl shadow-inner">
+              <h3 class="text-lg font-semibold mb-3 text-cyan-900">Resumen de tu día 🌅</h3>
+              <div id="resumen-contenido" class="text-left space-y-2 text-cyan-700"></div>
+            </div>
+          </section>
+
+          <!-- Notas rápidas -->
+          <section id="notas-diarias" class="bg-white shadow-lg rounded-2xl p-6">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-cyan-900">Notas rápidas 📝</h2>
+            
+            <div class="flex gap-2 mb-4">
+              <input
+                type="text"
+                id="nueva-nota"
+                placeholder="Escribe una nota rápida..."
+                class="flex-1 border border-cyan-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              />
+              <button id="agregar-nota" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-xl transition">
+                Agregar
+              </button>
+            </div>
+
+            <div id="lista-notas" class="grid grid-cols-1 gap-3"></div>
+          </section>
+
+        </div>
+      </div>
+
+      
+      <div id="historial" class="hidden mt-6 bg-white rounded-2xl shadow-lg max-w-md mx-auto p-5">
+        <h3 class="text-lg font-semibold mb-3 text-cyan-900">Tus últimos días 📆</h3>
+        <div id="lista-historial" class="space-y-3 text-left text-cyan-700"></div>
+      </div>
+
+      <div id="event-modal" class="hidden fixed inset-0 flex items-center justify-center z-[10000] transition-all duration-300">
+        <div id="modal-overlay" class="absolute inset-0 bg-black/40"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-[90%] z-[10001] transform transition-all duration-300 scale-95 opacity-0 translate-y-5"
+             id="modal-content">
+          <h3 id="modal-title" class="text-xl font-semibold text-cyan-900 mb-2">Evento</h3>
+          <p id="modal-date" class="text-sm text-cyan-700 mb-1"></p>
+          <p id="modal-category" class="text-sm text-cyan-700 mb-4"></p>
+          <div class="flex justify-end gap-2">
+            <button id="delete-event" class="bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-xl transition">
+              Eliminar
+            </button>
+            <button id="close-modal" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium px-4 py-2 rounded-xl transition">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <section id="calendario-usuario" class="mt-12">
+        <h2 class="text-2xl font-semibold text-center mb-6 text-cyan-900">Mi calendario y tareas 📅</h2>
+
+        <div class="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
+          <div class="md:col-span-2 bg-white shadow-lg rounded-2xl p-4">
+            <div id="planner-calendar" style="max-width:100%; margin:auto;"></div>
+
+            <div id="planner-form" class="hidden mt-6 p-4 bg-cyan-50 rounded-xl text-center">
+              <input id="event-title" type="text" placeholder="Título del evento"
+                class="w-full border border-cyan-200 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-cyan-400 focus:outline-none">
+              <input id="event-color" type="color" value="#3788d8"
+                class="w-full h-10 mb-3 cursor-pointer border border-cyan-200 rounded-xl">
+              <select id="event-category"
+                class="w-full border border-cyan-200 rounded-lg p-2 mb-3 focus:ring-2 focus:ring-cyan-400 focus:outline-none">
+                <option value="">Seleccionar categoría</option>
+                <option value="Trabajo">Trabajo</option>
+                <option value="Personal">Personal</option>
+                <option value="Cumpleaños">Cumpleaños</option>
+              </select>
+              <div class="flex justify-center gap-3">
+                <button id="save-event"
+                  class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-xl transition">Agregar</button>
+                <button id="cancel-event"
+                  class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-xl transition">Cancelar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white shadow-lg rounded-2xl p-6">
+            <h3 class="text-lg font-semibold mb-3 text-center text-cyan-900">Tareas del día 🧾</h3>
+
+            <div class="flex gap-2 mb-4">
+              <input type="text" id="nueva-tarea" placeholder="Agregar nueva tarea..."
+                class="flex-1 border border-cyan-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+              <button id="agregar-tarea"
+                class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-xl transition">+</button>
+            </div>
+
+            <ul id="lista-tareas" class="space-y-2 text-left text-cyan-700"></ul>
+          </div>
+        </div>
+      </section>
+    </div>
+
+   
+  </div>
+</section>
+
+
+<script>
+  // Mostrar formulario de registro diario
+  const btnAbrirRegistro = document.getElementById('abrir-registro');
+  const formRegistro = document.getElementById('form-registro');
+
+  btnAbrirRegistro.addEventListener('click', () => {
+    formRegistro.classList.toggle('hidden'); // Alterna visibilidad
+    btnAbrirRegistro.classList.toggle('hidden'); // Opcional: esconder el botón al abrir
+  });
+</script>
+
+
+
+
+<!-- wp:group {"tagName":"main","style":{"spacing":{"padding":{"top":"0","right":"0","bottom":"0","left":"0"},"blockGap":"0","margin":{"top":"0","bottom":"0"}}},"layout":{"type":"default"}} -->
+<main class="wp-block-group" style="margin-top:0;margin-bottom:0;padding-top:0;padding-right:0;padding-bottom:0;padding-left:0"><!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"64px","bottom":"64px","right":"24px","left":"24px"},"margin":{"top":"0px","bottom":"0px"}}},"backgroundColor":"ti-bg-alt","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull has-ti-bg-alt-background-color has-background" style="margin-top:0px;margin-bottom:0px;padding-top:64px;padding-right:24px;padding-bottom:64px;padding-left:24px"><!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"top":"40px","left":"40px"}}}} -->
+<div class="wp-block-columns alignwide"><!-- wp:column {"style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}}}} -->
+<div class="wp-block-column" style="padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px"><!-- wp:group {"style":{"spacing":{"blockGap":"0","padding":{"top":"0","right":"0","bottom":"0","left":"0"}}},"layout":{"type":"constrained","wideSize":"80px","justifyContent":"left","contentSize":"80px"}} -->
+<div class="wp-block-group" style="padding-top:0;padding-right:0;padding-bottom:0;padding-left:0"><!-- wp:group {"style":{"border":{"radius":"100px"},"spacing":{"padding":{"top":"16px","right":"16px","bottom":"16px","left":"16px"}}},"backgroundColor":"ti-accent","layout":{"type":"constrained","contentSize":"80px","justifyContent":"left"}} -->
+<div class="wp-block-group has-ti-accent-background-color has-background" style="border-radius:100px;padding-top:16px;padding-right:16px;padding-bottom:16px;padding-left:16px"><!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="http://localhost:8881/wp-content/themes/neve-fse/assets/img/neve-fse-img01.svg" alt=""/></figure>
+<!-- /wp:image --></div>
+<!-- /wp:group --></div>
+<!-- /wp:group -->
+
+<!-- wp:heading {"textAlign":"left","level":3,"fontSize":"medium"} -->
+<h3 class="wp-block-heading has-text-align-left has-medium-font-size">Trackea tu ánimo</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"align":"left"} -->
+<p class="has-text-align-left">Lleva un control de como te sentiste cada día registrando tus emociones.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}}}} -->
+<div class="wp-block-column" style="padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px"><!-- wp:group {"style":{"spacing":{"blockGap":"0","padding":{"top":"0","right":"0","bottom":"0","left":"0"}}},"layout":{"type":"constrained","wideSize":"80px","justifyContent":"left","contentSize":"80px"}} -->
+<div class="wp-block-group" style="padding-top:0;padding-right:0;padding-bottom:0;padding-left:0"><!-- wp:group {"style":{"border":{"radius":"100px"},"spacing":{"padding":{"top":"16px","right":"16px","bottom":"16px","left":"16px"}}},"backgroundColor":"ti-accent","layout":{"type":"constrained","contentSize":"80px","justifyContent":"left"}} -->
+<div class="wp-block-group has-ti-accent-background-color has-background" style="border-radius:100px;padding-top:16px;padding-right:16px;padding-bottom:16px;padding-left:16px"><!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="http://localhost:8881/wp-content/themes/neve-fse/assets/img/neve-fse-img02.svg" alt=""/></figure>
+<!-- /wp:image --></div>
+<!-- /wp:group --></div>
+<!-- /wp:group -->
+
+<!-- wp:heading {"textAlign":"left","level":3,"fontSize":"medium"} -->
+<h3 class="wp-block-heading has-text-align-left has-medium-font-size">Organiza tus días</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"align":"left"} -->
+<p class="has-text-align-left">Ordená tus eventos con el planner.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}}}} -->
+<div class="wp-block-column" style="padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px"><!-- wp:group {"style":{"spacing":{"blockGap":"0","padding":{"top":"0","right":"0","bottom":"0","left":"0"}}},"layout":{"type":"constrained","wideSize":"80px","justifyContent":"left","contentSize":"80px"}} -->
+<div class="wp-block-group" style="padding-top:0;padding-right:0;padding-bottom:0;padding-left:0"><!-- wp:group {"style":{"border":{"radius":"100px"},"spacing":{"padding":{"top":"16px","right":"16px","bottom":"16px","left":"16px"}}},"backgroundColor":"ti-accent","layout":{"type":"constrained","contentSize":"80px","justifyContent":"left"}} -->
+<div class="wp-block-group has-ti-accent-background-color has-background" style="border-radius:100px;padding-top:16px;padding-right:16px;padding-bottom:16px;padding-left:16px"><!-- wp:image {"sizeSlug":"large","linkDestination":"none"} -->
+<figure class="wp-block-image size-large"><img src="http://localhost:8881/wp-content/themes/neve-fse/assets/img/neve-fse-img03.svg" alt=""/></figure>
+<!-- /wp:image --></div>
+<!-- /wp:group --></div>
+<!-- /wp:group -->
+
+<!-- wp:heading {"textAlign":"left","level":3,"fontSize":"medium"} -->
+<h3 class="wp-block-heading has-text-align-left has-medium-font-size">Guarda notas rapidas</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph {"align":"left"} -->
+<p class="has-text-align-left">No te olvides de ninguna idea o tarea anotandola facilmente.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns --></div>
+<!-- /wp:group -->
+
+<!-- wp:heading {"textAlign":"center"} -->
+<h2 class="wp-block-heading has-text-align-center">Proximamente</h2>
+<!-- /wp:heading -->
+
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"64px","bottom":"64px"},"margin":{"top":"0","bottom":"0"}}},"backgroundColor":"ti-bg-alt","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull has-ti-bg-alt-background-color has-background" style="margin-top:0;margin-bottom:0;padding-top:64px;padding-bottom:64px"><!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"top":"0","left":"0"}}}} -->
+<div class="wp-block-columns alignwide"><!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"top":"24px","right":"24px","bottom":"24px","left":"24px"}}}} -->
+<div class="wp-block-column is-vertically-aligned-center" style="padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px"><!-- wp:heading -->
+<h2 class="wp-block-heading">Registrar hábitos</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Lleva un control simple de tus hábitos, observá tu progreso y lográ tus objetivos con el seguimiento personalizado.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column -->
+
+<!-- wp:column -->
+<div class="wp-block-column"><!-- wp:image {"id":94,"sizeSlug":"full","linkDestination":"none"} -->
+<figure class="wp-block-image size-full"><img src="http://localhost:8881/wp-content/uploads/2025/10/1_55da4682-cb9c-4ff2-a3ea-8d440173e45c.webp" alt="" class="wp-image-94"/></figure>
+<!-- /wp:image --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns --></div>
+<!-- /wp:group -->
+
+<!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"64px","bottom":"64px"},"margin":{"top":"0","bottom":"0"}},"elements":{"link":{"color":{"text":"var:preset|color|ti-fg-alt"}}}},"backgroundColor":"ti-bg-inv","textColor":"ti-fg-alt","layout":{"type":"constrained"}} -->
+<div class="wp-block-group alignfull has-ti-fg-alt-color has-ti-bg-inv-background-color has-text-color has-background has-link-color" style="margin-top:0;margin-bottom:0;padding-top:64px;padding-bottom:64px"><!-- wp:columns {"align":"wide","style":{"spacing":{"blockGap":{"top":"0","left":"0"}}}} -->
+<div class="wp-block-columns alignwide"><!-- wp:column -->
+<div class="wp-block-column"><!-- wp:image {"id":95,"sizeSlug":"full","linkDestination":"none"} -->
+<figure class="wp-block-image size-full"><img src="http://localhost:8881/wp-content/uploads/2025/10/depositphotos_174263920-stock-illustration-hand-holding-a-trophy.webp" alt="" class="wp-image-95"/></figure>
+<!-- /wp:image --></div>
+<!-- /wp:column -->
+
+<!-- wp:column {"verticalAlignment":"center","style":{"spacing":{"padding":{"top":"24px","right":"24px","bottom":"24px","left":"24px"}}}} -->
+<div class="wp-block-column is-vertically-aligned-center" style="padding-top:24px;padding-right:24px;padding-bottom:24px;padding-left:24px"><!-- wp:heading -->
+<h2 class="wp-block-heading">Rachas y logros</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Motivate a mejorar con rachas y logros por cumplir tus objetivos día a día y mantener tus hábitos.</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:column --></div>
+<!-- /wp:columns --></div>
+<!-- /wp:group --></main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const landing = document.getElementById("landing");
+  const loginSection = document.getElementById("login-section");
+  const userPanel = document.getElementById("user-panel");
+  const nombreUsuarioEl = document.getElementById("nombre-usuario");
+
+  const token = localStorage.getItem("token");
+  const usuario = JSON.parse(localStorage.getItem("usuarioActual") || "null");
+
+  // 🔹 Mostrar lo correcto según login
+  if (token && usuario) {
+    landing.classList.add("hidden");
+    loginSection.classList.add("hidden");
+    userPanel.classList.remove("hidden");
+    nombreUsuarioEl.textContent = usuario.nombreUsuario;
+  } else {
+    landing.classList.remove("hidden");
+    loginSection.classList.add("hidden");
+    userPanel.classList.add("hidden");
+  }
+
+  // 🔹 Botón "Iniciar sesión" baja al formulario
+  const irALogin = document.getElementById("ir-a-login");
+  irALogin.addEventListener("click", () => {
+    landing.classList.add("hidden");
+    loginSection.classList.remove("hidden");
+    window.scrollTo({ top: loginSection.offsetTop, behavior: "smooth" });
+  });
+
+  // 🔹 Manejar login
+  const form = document.getElementById("login-form");
+  const errorText = document.getElementById("login-error");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        errorText.textContent = data.mensaje || "Credenciales inválidas";
+        errorText.classList.remove("hidden");
+        return;
+      }
+
+      // Guardar sesión
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("usuarioActual", JSON.stringify(data.usuario));
+
+      // Mostrar panel
+      loginSection.classList.add("hidden");
+      userPanel.classList.remove("hidden");
+      nombreUsuarioEl.textContent = data.usuario.nombreUsuario;
+    } catch (error) {
+      errorText.textContent = "Error de conexión con el servidor.";
+      errorText.classList.remove("hidden");
+    }
+  });
+
+  // 🔹 Logout
+  const logoutBtn = document.getElementById("logout-btn");
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await fetch("http://127.0.0.1:8000/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+      });
+    } catch (error) {
+      console.error("Error cerrando sesión:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuarioActual");
+      userPanel.classList.add("hidden");
+      landing.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // ---------------- CALENDARIO ----------------
+  const calendarEl = document.getElementById("planner-calendar");
+  const formEl = document.getElementById("planner-form");
+  const titleInput = document.getElementById("event-title");
+  const colorInput = document.getElementById("event-color");
+  const categorySelect = document.getElementById("event-category");
+  const saveButton = document.getElementById("save-event");
+  const cancelButton = document.getElementById("cancel-event");
+
+  const eventModal = document.getElementById("event-modal");
+  const overlay = document.getElementById("modal-overlay");
+  const modalTitle = document.getElementById("modal-title");
+  const modalDate = document.getElementById("modal-date");
+  const modalCategory = document.getElementById("modal-category");
+  const deleteButton = document.getElementById("delete-event");
+  const closeButton = document.getElementById("close-modal");
+
+  let selectedDate = null;
+  let currentEvent = null;
+
+  if (calendarEl) {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      locale: 'es',
+      height: 'auto',
+      selectable: true,
+      editable: true,
+      
+      eventDrop: saveEventsToLocalStorage,
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,listWeek",
+      },
+      
+
+       buttonText: {
+    today: "Hoy",
+    month: "Mes",
+    week: "Semana",
+    day: "Día",
+    list: "Lista",
+  },
+      dateClick: (info) => {
+        selectedDate = info.dateStr;
+        formEl.style.display = "block";
+        titleInput.focus();
+        mostrarTareas();
+      },
+      eventClick: (info) => {
+        currentEvent = info.event;
+        modalTitle.textContent = currentEvent.title;
+        modalDate.textContent = "Fecha: " + currentEvent.start.toLocaleDateString();
+        modalCategory.textContent =
+          "Categoría: " + (currentEvent.extendedProps.category || "N/A");
+
+        eventModal.classList.remove("hidden");
+        setTimeout(() => {
+          const modalContent = document.getElementById("modal-content");
+          modalContent.classList.remove("opacity-0", "translate-y-5", "scale-95");
+          modalContent.classList.add("opacity-100", "translate-y-0", "scale-100");
+        }, 50);
+      },
+    });
+
+    saveButton.addEventListener("click", () => {
+      const title = titleInput.value.trim();
+      const color = colorInput.value;
+      const category = categorySelect.value;
+
+      if (title && selectedDate) {
+        calendar.addEvent({
+          title,
+          start: selectedDate,
+          allDay: true,
+          color,
+          extendedProps: { category },
+        });
+        saveEventsToLocalStorage();
+        titleInput.value = "";
+        categorySelect.value = "";
+        selectedDate = null;
+        formEl.style.display = "none";
+      }
+    });
+
+    cancelButton.addEventListener("click", () => {
+      titleInput.value = "";
+      categorySelect.value = "";
+      selectedDate = null;
+      formEl.style.display = "none";
+    });
+
+    closeButton.addEventListener("click", closeModal);
+    overlay.addEventListener("click", closeModal);
+    deleteButton.addEventListener("click", () => {
+      if (currentEvent) currentEvent.remove();
+      saveEventsToLocalStorage();
+      closeModal();
+    });
+
+    function closeModal() {
+      const modalContent = document.getElementById("modal-content");
+      modalContent.classList.add("opacity-0", "translate-y-5", "scale-95");
+      modalContent.classList.remove("opacity-100", "translate-y-0", "scale-100");
+      setTimeout(() => eventModal.classList.add("hidden"), 200);
+    }
+
+    function saveEventsToLocalStorage() {
+      const events = calendar.getEvents().map((event) => ({
+        title: event.title,
+        start: event.startStr,
+        color: event.backgroundColor,
+        category: event.extendedProps.category,
+      }));
+      localStorage.setItem("plannerEvents", JSON.stringify(events));
+    }
+
+    // Cargar eventos guardados
+    const storedEvents = JSON.parse(localStorage.getItem("plannerEvents") || "[]");
+    storedEvents.forEach((e) => {
+      calendar.addEvent({
+        title: e.title,
+        start: e.start,
+        color: e.color,
+        allDay: true,
+        extendedProps: { category: e.category },
+      });
+    });
+
+    calendar.render();
+
+    // -----  LISTA DE TAREAS -----
+const tareasKey = "tareas_diarias";
+const nuevaTareaInput = document.getElementById("nueva-tarea");
+const agregarTareaBtn = document.getElementById("agregar-tarea");
+const listaTareas = document.getElementById("lista-tareas");
+
+// Cargar tareas guardadas
+let tareas = JSON.parse(localStorage.getItem(tareasKey) || "[]");
+
+// Mostrar tareas
+function mostrarTareas() {
+  if (!selectedDate) {
+    listaTareas.innerHTML = "<p class='text-gray-500'>Seleccioná un día en el calendario</p>";
+    return;
+  }
+
+  const tareasDelDia = tareas.filter(t => t.fecha === selectedDate);
+
+  listaTareas.innerHTML = tareasDelDia
+    .map(
+      (t) => `
+      <li class="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-lg p-2">
+        <span class="flex-1 ${t.completada ? 'line-through text-gray-400' : ''}">${t.texto}</span>
+        <div class="flex gap-2">
+          <button data-id="${t.id}" class="completar-tarea text-green-500 hover:text-green-700">✔</button>
+          <button data-id="${t.id}" class="eliminar-tarea text-red-500 hover:text-red-700">✖</button>
+        </div>
+      </li>`
+    )
+    .join('');
+
+  document.querySelectorAll('.completar-tarea').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id);
+      const tarea = tareas.find((t) => t.id === id);
+      if (tarea) tarea.completada = !tarea.completada;
+      localStorage.setItem(tareasKey, JSON.stringify(tareas));
+      mostrarTareas();
+    })
+  );
+
+  document.querySelectorAll('.eliminar-tarea').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id);
+      tareas = tareas.filter((t) => t.id !== id);
+      localStorage.setItem(tareasKey, JSON.stringify(tareas));
+      mostrarTareas();
+    })
+  );
+}
+
+
+// Agregar nueva tarea
+agregarTareaBtn.addEventListener('click', () => {
+  const texto = nuevaTareaInput.value.trim();
+  if (!texto || !selectedDate) return; // ⚠️ agregar validación de fecha
+  tareas.push({ id: Date.now(), fecha: selectedDate, texto, completada: false });
+  localStorage.setItem(tareasKey, JSON.stringify(tareas));
+  nuevaTareaInput.value = '';
+  mostrarTareas();
+});
+
+
+mostrarTareas();
+
+  }
+
+  // ---------------- REGISTRO DIARIO ----------------
+  const abrirBtn = document.getElementById("abrir-registro");
+  const formRegistro = document.getElementById("form-registro");
+  const resumen = document.getElementById("resumen-dia");
+  const resumenContenido = document.getElementById("resumen-contenido");
+  const enviarBtn = document.getElementById("enviar-registro");
+  const animoEmojis = document.getElementById("animo-emojis");
+
+let animoSeleccionado = null;
+
+document.querySelectorAll(".emoji-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".emoji-btn").forEach((b) => b.classList.remove("scale-125"));
+    btn.classList.add("scale-125");
+    animoSeleccionado = btn.dataset.animo; // <-- ahora seguro
+  });
+});
+
+
+  abrirBtn.addEventListener("click", () => {
+    formRegistro.classList.toggle("hidden");
+    resumen.classList.add("hidden");
+  });
+
+  enviarBtn.addEventListener("click", () => {
+    if (!animoSeleccionado) {
+      alert("Por favor, seleccioná tu ánimo 😊");
+      return;
+    }
+
+    const estres = document.getElementById("estres").value;
+    const energia = document.getElementById("energia").value;
+    const actividades = [...formRegistro.querySelectorAll('input[type="checkbox"]:checked')].map(
+      (c) => c.value
+    );
+    const notas = document.getElementById("notas").value.trim();
+
+    const registro = {
+      fecha: new Date().toLocaleDateString(),
+      animo: animoSeleccionado,
+      estres,
+      energia,
+      actividades,
+      notas,
+    };
+
+    let registros = JSON.parse(localStorage.getItem("registros-dia") || "[]");
+    registros = registros.filter((r) => r.fecha !== registro.fecha);
+    registros.push(registro);
+    localStorage.setItem("registros-dia", JSON.stringify(registros));
+    localStorage.setItem("registro-dia", JSON.stringify(registro));
+
+    formRegistro.classList.add("hidden");
+    resumen.classList.remove("hidden");
+
+    resumenContenido.innerHTML = `
+      <p><strong>Ánimo:</strong> ${registro.animo}</p>
+      <p><strong>Estrés:</strong> ${registro.estres}/10</p>
+      <p><strong>Energía:</strong> ${registro.energia}/10</p>
+      <p><strong>Actividades:</strong> ${
+        registro.actividades.join(", ") || "Ninguna"
+      }</p>
+      <p><strong>Notas:</strong> ${registro.notas || "—"}</p>
+    `;
+
+    mostrarHistorial();
+  });
+
+  function mostrarHistorial() {
+    const historialDiv = document.getElementById("historial");
+    const lista = document.getElementById("lista-historial");
+    const registros = JSON.parse(localStorage.getItem("registros-dia") || "[]");
+
+    if (registros.length === 0) return;
+
+    historialDiv.classList.remove("hidden");
+
+    const recientes = registros.sort(
+      (a, b) => new Date(b.fecha) - new Date(a.fecha)
+    );
+
+    lista.innerHTML = recientes
+      .slice(0, 5)
+      .map(
+        (r) => `
+      <div class="p-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition">
+        <p><strong>${r.fecha}</strong> — ${r.animo}</p>
+        <p class="text-sm text-gray-600">⚡ Energía: ${r.energia}/10 | 🧠 Estrés: ${r.estres}/10</p>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  // Mostrar historial al cargar
+  resumen.classList.remove("hidden");
+  mostrarHistorial();
+
+
+//   -------
+
+
+// --- Notas ---
+const notasKey = "notas_generales";
+const nuevaNotaInput = document.getElementById('nueva-nota');
+const agregarNotaBtn = document.getElementById('agregar-nota');
+const listaNotasDiv = document.getElementById('lista-notas');
+
+let notas = JSON.parse(localStorage.getItem(notasKey) || '[]');
+
+function mostrarNotas() {
+  listaNotasDiv.innerHTML = notas
+    .map((n) => `
+      <div class="p-3 rounded-lg bg-gradient-to-br from-yellow-100 via-green-50 to-purple-100 shadow flex justify-between items-center">
+        <p class="flex-1 text-gray-800 break-words">${n.contenido}</p>
+        <button data-id="${n.id}" class="ml-2 text-gray-700 hover:text-gray-900 font-bold">✖</button>
+      </div>
+    `)
+    .join('');
+
+  // Agregar eventos de eliminar
+  listaNotasDiv.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = parseInt(btn.dataset.id);
+      notas = notas.filter(n => n.id !== id);
+      localStorage.setItem(notasKey, JSON.stringify(notas));
+      mostrarNotas();
+    });
+  });
+}
+
+// Agregar nueva nota
+agregarNotaBtn.addEventListener('click', () => {
+  const contenido = nuevaNotaInput.value.trim();
+  if (!contenido) return;
+  notas.push({ id: Date.now(), contenido });
+  localStorage.setItem(notasKey, JSON.stringify(notas));
+  nuevaNotaInput.value = '';
+  mostrarNotas();
+});
+
+// Mostrar notas al cargar
+mostrarNotas();
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("login-form");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const mensaje = document.getElementById("login-mensaje");
+
+    mensaje.textContent = "Conectando...";
+    mensaje.classList.remove("text-red-500");
+    mensaje.classList.add("text-gray-600");
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        mensaje.textContent = data.mensaje || "Error al iniciar sesión";
+        mensaje.classList.add("text-red-500");
+        return;
+      }
+
+      // Guardar token y usuario
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("usuarioActual", JSON.stringify(data.usuario));
+
+      mensaje.textContent = "Inicio de sesión exitoso 🎉";
+      mensaje.classList.remove("text-red-500");
+      mensaje.classList.add("text-green-500");
+
+      
+      setTimeout(() => {
+        window.location.href = "/mi-dashboard";
+      }, 1000);
+
+    } catch (error) {
+      console.error("Error en la conexión:", error);
+      mensaje.textContent = "No se pudo conectar con el servidor.";
+      mensaje.classList.add("text-red-500");
+    }
+  });
+});
+
+const token = localStorage.getItem("token");
+
+fetch("http://127.0.0.1:8000/api/nota", {
+  headers: {
+    "Authorization": `Bearer ${token}`,
+  },
+});
+
+document.getElementById("logout")?.addEventListener("click", async () => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  await fetch("http://127.0.0.1:8000/api/logout", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Accept": "application/json",
+    },
+  });
+
+  localStorage.removeItem("token");
+  localStorage.removeItem("usuarioActual");
+  alert("Sesión cerrada");
+  location.reload();
+});
+
+
+});
+</script>
+
+<!-- wp:template-part {"slug":"footer","area":"footer"} /-->
